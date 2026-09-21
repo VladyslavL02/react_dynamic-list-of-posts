@@ -16,14 +16,14 @@ import { getPosts } from './api/post';
 
 export const App = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [openPost, setOpenPost] = useState<Post | null>(null);
+  const [openedPost, setOpenedPost] = useState<Post | null>(null);
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsLoadingError, setPostsLoadingError] = useState(false);
 
   useEffect(() => {
-    getUsers().then(data => setUsers(data as User[]));
+    getUsers().then(setUsers);
   }, []);
 
   useEffect(() => {
@@ -45,13 +45,13 @@ export const App = () => {
   }, [selectedUser]);
 
   const handlePostOpen = (newOpenPost: Post) => {
-    if (newOpenPost === openPost) {
-      setOpenPost(null);
+    if (newOpenPost === openedPost) {
+      setOpenedPost(null);
 
       return;
     }
 
-    setOpenPost(newOpenPost);
+    setOpenedPost(newOpenPost);
   };
 
   return (
@@ -66,7 +66,7 @@ export const App = () => {
                   selectedUser={selectedUser}
                   onUserSelect={user => {
                     setSelectedUser(user);
-                    setOpenPost(null);
+                    setOpenedPost(null);
                   }}
                 />
               </div>
@@ -100,7 +100,7 @@ export const App = () => {
                         {!!posts?.length && (
                           <PostsList
                             posts={posts}
-                            isPostOpen={openPost}
+                            isPostOpen={openedPost}
                             onOpenPost={handlePostOpen}
                           />
                         )}
@@ -115,11 +115,11 @@ export const App = () => {
           <div
             data-cy="Sidebar"
             className={cn('tile', 'is-parent', 'is-8-desktop', 'Sidebar', {
-              'Sidebar--open': openPost !== null,
+              'Sidebar--open': openedPost !== null,
             })}
           >
             <div className="tile is-child box is-success ">
-              {openPost !== null && <PostDetails postInfo={openPost} />}
+              {openedPost !== null && <PostDetails postInfo={openedPost} />}
             </div>
           </div>
         </div>

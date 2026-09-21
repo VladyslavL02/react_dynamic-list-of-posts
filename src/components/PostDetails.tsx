@@ -10,17 +10,15 @@ type Props = {
 };
 
 export const PostDetails: React.FC<Props> = ({ postInfo }) => {
-  const [comments, setComments] = useState<Comment[] | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [errorMessage, setErrorMessage] = useState(false);
-  const [commentsBeforeDeletion, setCommentsBeforeDeletion] =
-    useState(comments);
   const [newCommentSelected, setNewCommentSelected] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(true);
 
   useEffect(() => {
     setCommentsLoading(true);
     setNewCommentSelected(false);
-    setComments(null);
+    setComments([]);
     setErrorMessage(false);
     getComments(postInfo.id)
       .then(data => setComments(data as Comment[]))
@@ -29,12 +27,10 @@ export const PostDetails: React.FC<Props> = ({ postInfo }) => {
   }, [postInfo.id]);
 
   const handleCommentDeletion = (commentId: number) => {
-    setCommentsBeforeDeletion(comments);
+    const commentsBeforeDeletion = comments;
 
     setComments(currentComments =>
-      currentComments
-        ? currentComments.filter(comment => comment.id !== commentId)
-        : null,
+      currentComments.filter(comment => comment.id !== commentId),
     );
 
     deleteComment(commentId).catch(() => {
@@ -45,7 +41,7 @@ export const PostDetails: React.FC<Props> = ({ postInfo }) => {
   const handleNewComment = (data: Comment) => {
     setComments(currentComments => {
       if (currentComments === null) {
-        return null;
+        return [];
       }
 
       return [...currentComments, data];
@@ -62,62 +58,66 @@ export const PostDetails: React.FC<Props> = ({ postInfo }) => {
 
       <div className="block">
         {commentsLoading && <Loader />}
+        {!commentsLoading && (
+          <>
+            {errorMessage && (
+              <div className="notification is-danger" data-cy="CommentsError">
+                Something went wrong
+              </div>
+            )}
 
-        <>
-          {errorMessage && (
-            <div className="notification is-danger" data-cy="CommentsError">
-              Something went wrong
-            </div>
-          )}
+            {!comments.length && !errorMessage && (
+              <p className="title is-4" data-cy="NoCommentsMessage">
+                No comments yet
+              </p>
+            )}
 
-          {comments !== null && !comments?.length && (
-            <p className="title is-4" data-cy="NoCommentsMessage">
-              No comments yet
-            </p>
-          )}
+            {!!comments.length && (
+              <>
+                <p className="title is-4">Comments:</p>
 
-          {!!comments?.length && (
-            <>
-              <p className="title is-4">Comments:</p>
+                {comments.map(comment => (
+                  <article
+                    className="message is-small"
+                    data-cy="Comment"
+                    key={comment.id}
+                  >
+                    <div className="message-header">
+                      <a
+                        href={`mailto:${comment.email}`}
+                        data-cy="CommentAuthor"
+                      >
+                        {comment.name}
+                      </a>
+                      <button
+                        data-cy="CommentDelete"
+                        type="button"
+                        className="delete is-small"
+                        aria-label="delete"
+                        onClick={() => handleCommentDeletion(comment.id)}
+                      ></button>
+                    </div>
 
-              {comments.map(comment => (
-                <article
-                  className="message is-small"
-                  data-cy="Comment"
-                  key={comment.id}
-                >
-                  <div className="message-header">
-                    <a href={`mailto:${comment.email}`} data-cy="CommentAuthor">
-                      {comment.name}
-                    </a>
-                    <button
-                      data-cy="CommentDelete"
-                      type="button"
-                      className="delete is-small"
-                      aria-label="delete"
-                      onClick={() => handleCommentDeletion(comment.id)}
-                    ></button>
-                  </div>
+                    <div className="message-body" data-cy="CommentBody">
+                      {comment.body}
+                    </div>
+                  </article>
+                ))}
+              </>
+            )}
 
-                  <div className="message-body" data-cy="CommentBody">
-                    {comment.body}
-                  </div>
-                </article>
-              ))}
-            </>
-          )}
-
-          {comments !== null && !newCommentSelected && (
-            <button
-              data-cy="WriteCommentButton"
-              type="button"
-              className="button is-link"
-              onClick={() => setNewCommentSelected(true)}
-            >
-              Write a comment
-            </button>
-          )}
-        </>
+            {!newCommentSelected && !errorMessage && (
+              <button
+                data-cy="WriteCommentButton"
+                type="button"
+                className="button is-link"
+                onClick={() => setNewCommentSelected(true)}
+              >
+                Write a comment
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       {newCommentSelected && (

@@ -1,4 +1,5 @@
 import { Comment } from '../types/Comment';
+import { Post } from '../types/Post';
 import { client } from '../utils/fetchClient';
 
 export function getComments(id: number) {
@@ -10,5 +11,5 @@ export function deleteComment(id: number) {
 }
 
 export function addComment(data: Omit<Comment, 'id'>) {
-  return client.post('/comments', data);
+  return client.post<Post>('/comments', data);
 }
